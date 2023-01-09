@@ -2,9 +2,9 @@ use rusty_engine::{prelude::*, game};
 
 /// Game and player state data
 struct GameState {
-    current_score: u32,
+    score: u32,
     ferris_index: i32,
-    // high_score: u32,
+    high_score: u32,
     // enemy_labels: Vec<String>,
     // spawn_timer: Timer,
 }
@@ -13,8 +13,8 @@ struct GameState {
 impl Default for GameState {
     fn default() -> Self {
         Self {
-            // high_score: 0,
-            current_score: 0,
+            high_score: 0,
+            score: 0,
             ferris_index: 0,
             // enemy_labels: Vec::new(),
             // spawn_timer: Timer::from_seconds(1.0, false)
@@ -29,6 +29,14 @@ fn main() {
     let player = game.add_sprite("player", SpritePreset::RacingCarBlue);
     player.collision = true;
 
+    // Register a score text
+    let score = game.add_text("score", "Score: 0");
+    score.translation = Vec2::new(520.0, 320.0);
+
+    // Register a highscore text
+    let highscore = game.add_text("highscore", "High-Score: 0");
+    highscore.translation = Vec2::new(-520.0, 320.0);
+
     // Adds a new logic/behavior into our game
     game.add_logic(game_logic);
 
@@ -41,14 +49,28 @@ fn main() {
 fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
     // Handling collision events
     for event in engine.collision_events.drain(..) {
+        // Check if one of the collided sprites is the player
         if event.state == CollisionState::Begin && event.pair.one_starts_with("player") {
+            // Remove the sprite what is not the player
             for sprite in [event.pair.0, event.pair.1] {
                 if sprite != "player" {
                     engine.sprites.remove(&sprite);
                 }
             }
-            game_state.current_score +=1;
-            println!("Current score: {}", game_state.current_score);
+
+            // Increase game score and update screen labels
+            game_state.score +=1;
+            
+            let score = engine.texts.get_mut("score").unwrap();
+            score.value = format!("Score: {}", game_state.score);
+            
+            if (game_state.score > game_state.high_score) {
+                game_state.high_score = game_state.score;
+                let highscore = engine.texts.get_mut("highscore").unwrap();
+                highscore.value = format!("High-Score: {}", game_state.score);
+            }
+            
+            println!("Current score: {}", game_state.score);
         }
     }
 
@@ -75,6 +97,12 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
         player.rotation = LEFT;
     }
 
+    if engine.keyboard_state.pressed(KeyCode::R) {
+        game_state.score = 0;
+        let score = engine.texts.get_mut("score").unwrap();
+        score.value = format!("Score: 0");
+    }
+
     // Handling mouse events
     if engine.mouse_state.pressed(MouseButton::Left) {
         // If we could get the mouse location
@@ -90,3 +118,18 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
         }
     }
 }
+
+// fn update_score(engine: Engine, game_state: GameState) {
+//     game_state.score +=1;
+            
+//     let score = engine.texts.get_mut("score").unwrap();
+//     score.value = format!("Score: {}", game_state.score);
+    
+//     if (game_state.score > game_state.high_score) {
+//         game_state.score = game_state.score;
+//         let highscore = engine.texts.get_mut("highscore").unwrap();
+//         highscore.value = format!("High-Score: {}", game_state.score);
+//     }
+    
+//     println!("Current score: {}", game_state.score);
+// }
