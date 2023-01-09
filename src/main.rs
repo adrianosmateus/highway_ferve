@@ -2,20 +2,22 @@ use rusty_engine::{prelude::*, game};
 
 /// Game and player state data
 struct GameState {
-    high_score: u32,
     current_score: u32,
-    enemy_labels: Vec<String>,
-    spawn_timer: Timer,
+    ferris_index: i32,
+    // high_score: u32,
+    // enemy_labels: Vec<String>,
+    // spawn_timer: Timer,
 }
 
 /// Default initialization for game state
 impl Default for GameState {
     fn default() -> Self {
         Self {
-            high_score: 0,
+            // high_score: 0,
             current_score: 0,
-            enemy_labels: Vec::new(),
-            spawn_timer: Timer::from_seconds(1.0, false)
+            ferris_index: 0,
+            // enemy_labels: Vec::new(),
+            // spawn_timer: Timer::from_seconds(1.0, false)
         }
     }
 }
@@ -26,11 +28,6 @@ fn main() {
     // Register the player sprite
     let player = game.add_sprite("player", SpritePreset::RacingCarBlue);
     player.collision = true;
-
-    // Register the target car sprite
-    let car1 = game.add_sprite("car1", SpritePreset::RacingCarGreen);
-    car1.translation = Vec2::new(200.0, 0.0);
-    car1.collision = true;
 
     // Adds a new logic/behavior into our game
     game.add_logic(game_logic);
@@ -55,7 +52,7 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
         }
     }
 
-    // Handling movement events
+    // Handling keyboard events
     let player = engine.sprites.get_mut("player").unwrap();
     const MOV_SPEED: f32 = 10.0;
     if engine.keyboard_state.pressed_any(&[KeyCode::Up, KeyCode::W]) {
@@ -76,5 +73,20 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
     if engine.keyboard_state.pressed_any(&[KeyCode::Left, KeyCode::A]) {
         player.translation.x -= MOV_SPEED + engine.delta_f32;
         player.rotation = LEFT;
+    }
+
+    // Handling mouse events
+    if engine.mouse_state.pressed(MouseButton::Left) {
+        // If we could get the mouse location
+        if let Some(mouse_location) = engine.mouse_state.location() {
+            // Create the new car name using our index counting
+            let label = format!("Ferris{} ", game_state.ferris_index);
+            game_state.ferris_index += 1;
+            
+            // Create a new car with the new index
+            let car = engine.add_sprite(label, SpritePreset::RacingCarRed);
+            car.translation = mouse_location;
+            car.collision = true;
+        }
     }
 }
