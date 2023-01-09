@@ -25,6 +25,9 @@ impl Default for GameState {
 fn main() {
     let mut game = Game::new();
 
+    // Begins the game music
+    game.audio_manager.play_music(MusicPreset::Classy8Bit, 0.2);
+
     // Register the player sprite
     let player = game.add_sprite("player", SpritePreset::RacingCarBlue);
     player.collision = true;
@@ -69,6 +72,8 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
                 let highscore = engine.texts.get_mut("highscore").unwrap();
                 highscore.value = format!("High-Score: {}", game_state.score);
             }
+
+            engine.audio_manager.play_sfx(SfxPreset::Minimize2, 0.3);
             
             println!("Current score: {}", game_state.score);
         }
