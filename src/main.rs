@@ -1,4 +1,5 @@
 use rusty_engine::{prelude::*, game};
+use rand::prelude::*;
 
 /// Game and player state data
 struct GameState {
@@ -6,7 +7,7 @@ struct GameState {
     ferris_index: i32,
     high_score: u32,
     // enemy_labels: Vec<String>,
-    // spawn_timer: Timer,
+    spawn_timer: Timer,
 }
 
 /// Default initialization for game state
@@ -17,7 +18,7 @@ impl Default for GameState {
             score: 0,
             ferris_index: 0,
             // enemy_labels: Vec::new(),
-            // spawn_timer: Timer::from_seconds(1.0, false)
+            spawn_timer: Timer::from_seconds(2.0, true)
         }
     }
 }
@@ -108,19 +109,17 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
         score.value = format!("Score: 0");
     }
 
-    // Handling mouse events
-    if engine.mouse_state.pressed(MouseButton::Left) {
-        // If we could get the mouse location
-        if let Some(mouse_location) = engine.mouse_state.location() {
-            // Create the new car name using our index counting
-            let label = format!("Ferris{} ", game_state.ferris_index);
-            game_state.ferris_index += 1;
-            
-            // Create a new car with the new index
-            let car = engine.add_sprite(label, SpritePreset::RacingCarRed);
-            car.translation = mouse_location;
-            car.collision = true;
-        }
+    // Car spawning timer
+    if game_state.spawn_timer.tick(engine.delta).just_finished() {
+        // Create the new car name using our index counting
+        let label = format!("Ferris{} ", game_state.ferris_index);
+        game_state.ferris_index += 1;
+
+        // Create a new car with the new index
+        let car = engine.add_sprite(label, SpritePreset::RacingCarRed);
+        car.translation.x = thread_rng().gen_range(-550.0..550.0);
+        car.translation.y = thread_rng().gen_range(-325.0..325.0);
+        car.collision = true;
     }
 }
 
