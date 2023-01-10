@@ -26,6 +26,13 @@ impl Default for GameState {
 fn main() {
     let mut game = Game::new();
 
+    game.window_settings(WindowDescriptor {
+        title: "Highway fever".to_string(),
+        // width: 1400.0,
+        // height: 500.0,
+        ..Default::default()
+    });
+
     // Begins the game music
     game.audio_manager.play_music(MusicPreset::Classy8Bit, 0.2);
 
@@ -51,6 +58,20 @@ fn main() {
 
 /// Returns a game logic to be used in our game
 fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
+    // Exits the game
+    if engine.keyboard_state.pressed(KeyCode::Q) {
+        engine.should_exit = true;
+    }
+
+    // Keep texts position on resize
+    let offset = ((engine.time_since_startup_f64 * 2.0).cos() * 5.0) as f32;
+    let score = engine.texts.get_mut("score").unwrap();
+    score.translation.x = engine.window_dimensions.x / 2.0 - 100.0;    
+    score.translation.y = engine.window_dimensions.y / 2.0 - 50.0 + offset;    
+    let highscore = engine.texts.get_mut("highscore").unwrap();
+    highscore.translation.x = - engine.window_dimensions.x / 2.0 + 100.0;    
+    highscore.translation.y = engine.window_dimensions.y / 2.0 - 50.0;    
+
     // Handling collision events
     for event in engine.collision_events.drain(..) {
         // Check if one of the collided sprites is the player
